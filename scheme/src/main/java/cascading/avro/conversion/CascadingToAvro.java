@@ -7,6 +7,7 @@ import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.avro.UnresolvedUnionException;
 import org.apache.avro.generic.*;
+import org.apache.avro.mapred.Pair;
 import org.apache.avro.specific.SpecificData;
 import org.apache.hadoop.io.BytesWritable;
 
@@ -35,6 +36,7 @@ public class CascadingToAvro extends AvroConverterBase<TupleEntry, IndexedRecord
             .putAll(Schema.Type.STRING, String.class, CharSequence.class)
             .putAll(Schema.Type.NULL, Void.class)
             .build();
+    public static final String AVRO_PAIR_SCHEMA = "org.apache.avro.mapred.Pair";
 
     protected ImmutableSetMultimap<Schema.Type, Class<?>> avroTypeMultimap;
 
@@ -202,6 +204,9 @@ public class CascadingToAvro extends AvroConverterBase<TupleEntry, IndexedRecord
     }
 
     protected IndexedRecord createAvroRecord(Schema schema) {
+        if (schema.getFullName().equals(AVRO_PAIR_SCHEMA)) {
+            return new Pair(schema);
+        }
         GenericContainer specificContainer = createSpecificContainer(schema);
         return specificContainer != null ? (IndexedRecord) specificContainer : new GenericData.Record(schema);
     }
